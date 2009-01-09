@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# A script for monitoring mysql-cluster ndbd daemon
+
+#  0 = OK
+#  1 = Warning
+#  2 = Fatal Error 
+
+NDB_MGM='ndb_mgm'
+# check parameters are valid
+case $# in
+    2)
+    # assign parameters
+    HOST=$1
+    NODEID=$2
+
+    # check to see ndbd_mgm daemon is running on $HOST and 
+    # node are running
+    NODE_STATUS=`$NDB_MGM -c host=$HOST -t 1 -e "$NODEID status" | egrep -v '(Connected to Management Server|^$)'`
+    case $NODE_STATUS in
+	*started*)
+	echo "OK - $NODE_STATUS"
+	exit 0
+	;;
+	*starting*)
+	echo "WARRING - $NODE_STATUS"
+	exit 1
+	;;
+	"Node $NODEID: connected"*)
+	echo "OK - $NODE_STATUS"
+	exit 0
+	;;
+	*)
+	echo "ERROR - $NODE_STATUS"
+	exit 2
+	;;
+    esac
+    ;;
+
+    *)
+    echo "Invalid parameters need: <ndb_mgmd host[:port]> <node ID>"
+    exit 2
+    ;;
+esac
+

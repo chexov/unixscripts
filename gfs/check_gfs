@@ -1,0 +1,55 @@
+#!/bin/sh
+#
+# $Id: check_gfs 101 2007-03-01 08:49:16Z chexov $
+# A script for checking GFS availability (Red Hat Gloab File System)
+# Copyright (C) 2007 Anton P. Linevich <chexov@geeks.org.ua>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+#
+#  exit status for scripts:
+#  0 = OK
+#  1 = Warning 
+#  2 = Fatal Error
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+
+case $# in
+    1)
+    # assign parameters
+    CHECK_PATH=$1
+    OUT=`cd "$CHECK_PATH" 2>&1 && (ls -1 | wc -l |sed -e 's/  //g')`
+    case $? in
+	0)
+	if [ $OUT -eq '0' ]; then
+	    echo "WARNING - GFS seems working, but no files. Give me files!"
+	    exit 1
+	else 
+	    echo "OK - I found $OUT files in $CHECK_PATH"
+	    exit 0
+	fi
+	;;
+	*)
+	echo "CRITICAL - I catch the error while checking $CHECK_PATH: `echo $OUT | sed -e "s!^.*$CHECK_PATH!!"`"
+	exit 2
+	;;
+    esac
+    ;;
+    *) 
+    echo "Usage: check_gfs <path to GFS mount point>"
+    exit 2
+    ;;
+esac
+

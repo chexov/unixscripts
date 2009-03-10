@@ -1,0 +1,5 @@
+Old script for downloading youtube videos.
+First it is trying HD video, then HQ, then MOBILE video.
+
+Use it like this: youtube.py <YOUTUBE Video ID> [out file]
+

@@ -1,12 +1,12 @@
+#!/usr/bin/env python
 import logging
 import urllib2
 import os
 import sys
 from xml.dom import minidom
 
-NAME='YOUTUBE'
 logging.basicConfig()
-log = logging.getLogger(__name__)
+log = logging.getLogger("youtube.downloader")
 log.setLevel(logging.DEBUG)
 
 def downloadFileByUrl(url):
@@ -28,11 +28,26 @@ def dataToFile(filename, data):
 
 
 class Youtube(object):
-  '''Class that can download get direct video URL
-     and download it to your local storage
-  '''
+    '''Class that can download get direct video URL
+       and download it to your local storage
+    '''
     @staticmethod
-    def retriveYoutubeToken(ID):
+    def retriveYoutubeTokenUsingWatchpage(ID):
+        """
+        l="var fullscreenUrl = '/watch_fullscreen?fs=1&fexp=900142%2C900030%2C900162&iv_storage_server=http%3A%2F%2Fwww.google.com%2Freviews%2Fy%2F&creator=amiablewalker&sourceid=r&video_id=VJyTA4VlZus&l=353&sk=QtBR18Y95jsDyLXHgv9jbMu0ghb3MxoSU&fmt_map=34%2F0%2F9%2F0%2F115%2C5%2F0%2F7%2F0%2F0&t=vjVQa1PpcFPt0HhU0HkTG6A75-QxhAiV6WuMqB2a4r4%3D&hl=en&plid=AARnlkLz-d6cbsVe&vq=None&iv_module=http%3A%2F%2Fs.ytimg.com%2Fyt%2Fswf%2Fiv_module-vfl89178.swf&cr=US&sdetail=p%253Afriendfeed.com%2Feril&title=How To Learn Any Accent Part 1';"
+        """
+        url = "http://www.youtube.com/watch?v=%s" % ID
+        html = urllib2.urlopen(url).read()
+        for l in html.splitlines():
+            token_start = l.find('&t=')
+            if token_start > -1:
+                token = l[token_start+3:].split('&')[0]
+                return token
+        return None
+
+
+    @staticmethod
+    def retriveYoutubeTokenUsingAPI(ID):
         """Getting youtube token.
          token is need for building FLV URL"""
         youtube_token = None
@@ -62,29 +77,27 @@ class Youtube(object):
     @staticmethod
     def getHDVideourlByID(ID):
         videourl = None
-        token = Youtube.retriveYoutubeToken(ID)
+        token = Youtube.retriveYoutubeTokenUsingWatchpage(ID)
         if token:
-            videourl = "http://www.youtube.com/get_video?video_id=%s&fmt=22&t=%s" % (ID, token)
+            videourl = "http://www.youtube.com/get_video.php?video_id=%s&fmt=22&t=%s" % (ID, token)
         return videourl
 
     @staticmethod
     def getHQVideourlByID(ID):
         videourl = None
-        token = Youtube.retriveYoutubeToken(ID)
+        token = Youtube.retriveYoutubeTokenUsingWatchpage(ID)
         if token:
-            videourl = "http://www.youtube.com/get_video?video_id=%s&fmt=18&t=%s" % (ID, token)
+            videourl = "http://www.youtube.com/get_video.php?video_id=%s&fmt=18&t=%s" % (ID, token)
         return videourl
         
     @staticmethod
-    def run(serviceID, outFolder=None, outFilename=None):
-        if not outFolder:
+    def run(serviceID, outFilePath=None):
+        if not outFilePath:
             outFolder = os.getcwd()
-        if not outFilename:
-            outFilename = serviceID
+            outFilePath = os.getcwd() + os.sep + serviceID
         
         data = None
         finished = False
-        outFilePath = outFolder + os.sep + outFilename
         
         # if file exist on local node, do not download FLV one more.
         if os.path.isfile(outFilePath):
@@ -130,8 +143,8 @@ if __name__ == "__main__":
         ID = sys.argv[1]
         Youtube.run(ID)
     elif len(sys.argv) == 3:
-        Youtube.run(sys.argv[1], sys.argv[2])
+        Youtube.run(serviceID=sys.argv[1], outFilePath=sys.argv[2])
     else:
-        print "youtube.py <Youtube ID> [<Out Folder>]"
+        print "%s <Youtube ID> [<Out Filename>]" % sys.argv[0]
         sys.exit(13)
 

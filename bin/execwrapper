@@ -1,0 +1,74 @@
+#!/bin/sh
+# Execute only one copy of the programm in time.
+# usefull unpredictable for cron periodics
+
+[ ! "$2" ] && {
+    echo "Usage: `basename $0` <lockfile> <cmd>"
+    exit 13
+}
+
+setlock () {
+    local lockfile=$1
+    local host pid lock ret
+
+    local myhost=`hostname -s`
+
+    # set lock
+    echo "$myhost $$" > ${lockfile}.${myhost}_$$
+
+    # check count of locks
+    if [ `ls $lockfile.* | wc -l` -eq 1 ]; then
+        # if we have one==our lock
+        return 0
+    fi
+
+    rmlock $lockfile
+
+    # clean old lock
+    local locks="`ls $lockfile.$myhost* 2>/dev/null`"
+
+    local lockdir=`dirname $lockfile`
+
+    for lock in $locks; do
+        if [ -f $lock ]; then
+            read host pid < $lock
+            echo "Lock file $lock exist"
+            ps axuw | grep $pid
+
+            kill -0 $pid >/dev/null 2>&1
+            if [ $? -ne 0 ]; then
+                rm $lock
+            fi
+        fi
+    done
+
+    return 1
+}
+
+rmlock () {
+    local lockfile=$1
+
+    # rm -f $lockfile
+    # clean our lock
+    rm -f $lockfile.`hostname -s`_$$
+}
+
+lockfile=$1; shift
+
+setlock $lockfile || exit 0
+
+{
+    echo "- START `date`"
+    eval $@
+    ret=$?
+    echo "- STOP: `date`"
+}
+
+if [ $ret -ne 0 ]; then
+    echo "`date` ERROR: exit code $ret";
+fi
+
+rmlock $lockfile
+
+exit $ret
+

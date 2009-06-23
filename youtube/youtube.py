@@ -3,6 +3,7 @@ import logging
 import urllib2
 import os
 import sys
+import re
 from xml.dom import minidom
 
 logging.basicConfig()
@@ -28,24 +29,36 @@ def dataToFile(filename, data):
 
 
 class Youtube(object):
-    '''Class that can download get direct video URL
-       and download it to your local storage
+    '''Youtube class is created to download video from youtube.com.
     '''
     @staticmethod
-    def retriveYoutubeTokenUsingWatchpage(ID):
+    def retriveYoutubePageToken(ID, htmlpage=None):
         """
         l="var fullscreenUrl = '/watch_fullscreen?fs=1&fexp=900142%2C900030%2C900162&iv_storage_server=http%3A%2F%2Fwww.google.com%2Freviews%2Fy%2F&creator=amiablewalker&sourceid=r&video_id=VJyTA4VlZus&l=353&sk=QtBR18Y95jsDyLXHgv9jbMu0ghb3MxoSU&fmt_map=34%2F0%2F9%2F0%2F115%2C5%2F0%2F7%2F0%2F0&t=vjVQa1PpcFPt0HhU0HkTG6A75-QxhAiV6WuMqB2a4r4%3D&hl=en&plid=AARnlkLz-d6cbsVe&vq=None&iv_module=http%3A%2F%2Fs.ytimg.com%2Fyt%2Fswf%2Fiv_module-vfl89178.swf&cr=US&sdetail=p%253Afriendfeed.com%2Feril&title=How To Learn Any Accent Part 1';"
         """
-        url = "http://www.youtube.com/watch?v=%s" % ID
-        html = urllib2.urlopen(url).read()
-        for l in html.splitlines():
-            token_start = l.find('&t=')
-            if token_start > -1:
-                token = l[token_start+3:].split('&')[0]
-                return token
-        return None
-
-
+        if not htmlpage:
+            url = "http://www.youtube.com/watch?v=%s" % ID
+            htmlpage = urllib2.urlopen(url).read()
+        match = re.search(r"var fullscreenUrl =.+&t=([^&]+)", htmlpage)
+        if match:
+            token = match.group(1)
+        else:
+            raise ValueError("Can't extract token from HTML page. Youtube changed layout. Please, contact to the author of this script")
+        return token
+    
+    @staticmethod
+    def retriveYoutubePageTitle(ID, htmlpage=None, clean=True):
+        title = ID
+        if not htmlpage:
+            url = "http://www.youtube.com/watch?v=%s" % ID
+            htmlpage = urllib2.urlopen(url).read()
+        match = re.search(r"<title>(.+)</title>", htmlpage)
+        if match:
+            title = match.group(1)
+            if clean:
+                title = re.sub("[^a-z.]", "_", title.strip().lower())
+        return title
+    
     @staticmethod
     def retriveYoutubeTokenUsingAPI(ID):
         """Getting youtube token.
@@ -77,7 +90,7 @@ class Youtube(object):
     @staticmethod
     def getHDVideourlByID(ID):
         videourl = None
-        token = Youtube.retriveYoutubeTokenUsingWatchpage(ID)
+        token = Youtube.retriveYoutubePageToken(ID)
         if token:
             videourl = "http://www.youtube.com/get_video.php?video_id=%s&fmt=22&t=%s" % (ID, token)
         return videourl
@@ -85,16 +98,20 @@ class Youtube(object):
     @staticmethod
     def getHQVideourlByID(ID):
         videourl = None
-        token = Youtube.retriveYoutubeTokenUsingWatchpage(ID)
+        token = Youtube.retriveYoutubePageToken(ID)
         if token:
             videourl = "http://www.youtube.com/get_video.php?video_id=%s&fmt=18&t=%s" % (ID, token)
         return videourl
         
     @staticmethod
     def run(serviceID, outFilePath=None):
+        url = "http://www.youtube.com/watch?v=%s" % serviceID
+        htmlpage = None
         if not outFilePath:
+            htmlpage = urllib2.urlopen(url).read()
+            title = Youtube.retriveYoutubePageTitle(serviceID, htmlpage, clean=True)
             outFolder = os.getcwd()
-            outFilePath = os.getcwd() + os.sep + serviceID
+            outFilePath = os.path.join(os.getcwd(), title + '.mp4')
         
         data = None
         finished = False
@@ -110,7 +127,7 @@ class Youtube(object):
         if not url:
             log.debug("Can't get HD video url")
         else:
-            log.debug("Downloading %s" % url)
+            log.debug("Downloading %s -> %s" % (url, outFilePath))
             data = downloadFileByUrl(url)
             if data:
                 log.info("saving %s into %s" % (serviceID, outFilePath))
@@ -125,7 +142,7 @@ class Youtube(object):
         if not url:
             log.debug("Can't get HQ video url")
         else:
-            log.debug("Downloading %s" % url)
+            log.debug("Downloading %s -> %s" % (url, outFilePath))
             data = downloadFileByUrl(url)
             if data:
                 log.info("saving %s into %s" % (serviceID, outFilePath))
@@ -135,7 +152,7 @@ class Youtube(object):
             else:
                 log.debug("no data while downloading '%s'" % url)
         return finished
-    
+
 
 if __name__ == "__main__":
     log.setLevel(logging.DEBUG)

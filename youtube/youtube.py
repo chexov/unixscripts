@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# encoding: utf-8
+
 import logging
 import urllib2
 import os
@@ -39,7 +41,7 @@ class Youtube(object):
         if not htmlpage:
             url = "http://www.youtube.com/watch?v=%s" % ID
             htmlpage = urllib2.urlopen(url).read()
-        match = re.search(r"var fullscreenUrl =.+&t=([^&]+)", htmlpage)
+        match = re.search(r', "t": "([^&"]+)"', htmlpage)
         if match:
             token = match.group(1)
         else:
@@ -47,7 +49,7 @@ class Youtube(object):
         return token
     
     @staticmethod
-    def retriveYoutubePageTitle(ID, htmlpage=None, clean=True):
+    def retriveYoutubePageTitle(ID, htmlpage=None, clean=False):
         title = ID
         if not htmlpage:
             url = "http://www.youtube.com/watch?v=%s" % ID

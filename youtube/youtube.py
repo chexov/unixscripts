@@ -58,7 +58,7 @@ class Youtube(object):
         if match:
             title = match.group(1)
             if clean:
-                title = re.sub("[^a-z.]", "_", title.strip().lower())
+                title = re.sub("[^a-z.0-9A-Z-]", "_", title.strip().lower())
         return title
     
     @staticmethod

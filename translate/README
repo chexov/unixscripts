@@ -1,0 +1,8 @@
+Installation:
+cp ./translate ~/bin/translate
+
+Usage:
+  % translate "привет, дорогой друг"
+    # from ru
+    hello, dear friend
+

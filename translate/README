@@ -1,10 +1,14 @@
-This is translate script for unix terminal which is using Google Translate API.
+gtranslate is terminal client for Google Translate API
+======================================================
 
 
-Installation:
+Installation
+============
 cp ./gtranslate ~/bin/gtranslate
 
-Usage:
+
+Usage
+=====
   % gtranslate -h
   Usage: gtranslate [options]
 
@@ -16,10 +20,12 @@ Usage:
 
 
 
+Translate from command line arguments
+-------------------------------------
+
   % gtranslate "привет, дорогой друг"
   # from ru
   hello, dear friend
-
 
 
   % gtranslate -t ja "hello, dear friend"  
@@ -33,7 +39,8 @@ Usage:
   Hello
 
 
-
+Translate from text file
+------------------------
   % cat f.txt| gtranslate -t ja -f en
   平和主義をめぐる紛争や優位に立つの解決の手段として、戦争や暴力に反対している。平和ビューの信念は、国際紛争を平和的に解決しなければならないことからまでの周波数をカバーし、軍事や戦争、政府の力によって社会のあらゆる組織に反対する（無政府主義者や自由主義平和主義の制度の廃止を求める声に）
   ;肉体的な暴力の使用を拒否したため、経済的政治的あるいは社会的目標を取得するため、力を非難する例では、絶対平和の大義を推進するために必要な場合を除き、どのような状況の下で、暴力に反対するには、自己防衛を含めなどがあります。

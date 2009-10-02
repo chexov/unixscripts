@@ -45,8 +45,11 @@ def downloadFileByUrl(url, filename=None):
        else:
            data = f.read()
            f.close()
-   except:
-       LOG.error ("While downloading file %s: %s" %(url, sys.exc_value) )
+   except IOError, e:
+       return None
+   except urllib2.HTTPError, e:
+       LOG.critical("Can't process with download: %s" % e)
+       return None
    finally:
        return data
 
@@ -56,7 +59,7 @@ class YoutubePlaylistHTMLParser(HTMLParser):
     """HTMLParser class which extract youtube video IDs
        from HTML page
     """
-    PLAYLIST_ITEMS = set()
+    PLAYLIST_ITEMS = list()
     
     def __extract_video_id_from_uri(self, uri):
         """
@@ -85,7 +88,7 @@ class YoutubePlaylistHTMLParser(HTMLParser):
         if _attrs_dict.get('id') and _attrs_dict.get('id').find('video-long-title') > -1:
             # We need only HREFs with 'id' == 'video-long-title.*'
             vid = self.__extract_video_id_from_uri(_attrs_dict['href'])
-            self.PLAYLIST_ITEMS.add(vid)
+            self.PLAYLIST_ITEMS.append(vid)
             LOG.info("Found video id %s for %s" % (vid, _attrs_dict.get('title')) )
 
 
@@ -170,7 +173,7 @@ class Youtube(object):
         else:
             #LOG.debug("Downloading %s -> %s" % (url, outFilePath))
             if not downloadFileByUrl(url, outFilePath_tmp):
-                LOG.debug("no data while downloading '%s'" % url)
+                LOG.debug("HD Video not found '%s'" % url)
         
         LOG.debug("Trying to get HQ video")
         url = Youtube.getHQVideourlByID(youtube_id)
@@ -179,10 +182,12 @@ class Youtube(object):
         else:
             #LOG.debug("Downloading %s -> %s" % (url, outFilePath))
             if not downloadFileByUrl(url, outFilePath_tmp):
-                LOG.debug("no data while downloading '%s'" % url)
+                LOG.debug("HQ video not found '%s'" % url)
         
         if finished:
             os.rename(outFilePath_tmp, outFilePath)
+        else:
+            os.remove(outFilePath_tmp)
         return finished
     
     
@@ -190,13 +195,12 @@ class Youtube(object):
     def get_playlist_video_ids(playlist_id, html=None):
         """
         GET playlist_id
-        RETURNS set() of all video ids from that playlist
+        RETURNS list() of all video ids from that playlist
         
         Explanation:
           for the URL http://www.youtube.com/view_play_list?p=8EE54070B382E73A
           'playlist_id' shold be '8EE54070B382E73A'
         """
-        result = set()
         playlist_url = "http://www.youtube.com/view_play_list?p=%s" % playlist_id
         
         if not html:
@@ -217,14 +221,16 @@ if __name__ == "__main__":
             help="Download all playlist videos to the current directory", default=None)
     
     (options, args) = parser.parse_args()
+    try:
+        if options.playlist:
+            for vID in Youtube.get_playlist_video_ids(options.playlist):
+                Youtube.run(vID)
+        elif len(args) > 0:
+            for vID in args:
+                Youtube.run(vID)
+        else:
+            parser.print_help()
+    except KeyboardInterrupt:
+        print "\nThank you for flying with youtube.py. Bye-bye."
+        sys.exit(1)
     
-    if options.playlist:
-        for vID in Youtube.get_playlist_video_ids(options.playlist):
-            Youtube.run(vID)
-    elif len(args) > 0:
-        for vID in args:
-            Youtube.run(vID)
-    else:
-        parser.print_help()
-    
-

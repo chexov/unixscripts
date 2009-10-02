@@ -180,7 +180,9 @@ class Youtube(object):
             #LOG.debug("Downloading %s -> %s" % (url, outFilePath))
             if not downloadFileByUrl(url, outFilePath_tmp):
                 LOG.debug("no data while downloading '%s'" % url)
-        os.rename(outFilePath_tmp, outFilePath)
+        
+        if finished:
+            os.rename(outFilePath_tmp, outFilePath)
         return finished
     
     
@@ -217,7 +219,7 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
     
     if options.playlist:
-        for vID in Youtube.get_playlist_video_ids('8EE54070B382E73A'):
+        for vID in Youtube.get_playlist_video_ids(options.playlist):
             Youtube.run(vID)
     elif len(args) > 0:
         for vID in args:

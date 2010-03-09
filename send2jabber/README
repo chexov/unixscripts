@@ -1,0 +1,6 @@
+A simple python script which send jabber messages from the terminal.
+Written for a Nagios notify-by-jabber hook
+
+Usage:
+echo "Hello. I am a robot" | send2jabber.py --user=Username --password=Password --server=jabber.myhostname.com --recipient=bill@gates.com
+

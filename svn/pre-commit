@@ -1,0 +1,85 @@
+#!/bin/sh
+# CUSTOM PRE-COMMIT HOOK
+# Anton P. Linevich <anton@linevich.com>, 2010
+#
+# The pre-commit hook is invoked before a Subversion txn is
+# committed.  Subversion runs this hook by invoking a program
+# (script, executable, binary, etc.) named 'pre-commit' (for which
+# this file is a template), with the following ordered arguments:
+#
+#   [1] REPOS-PATH   (the path to this repository)
+#   [2] TXN-NAME     (the name of the txn about to be committed)
+#
+# The default working directory for the invocation is undefined, so
+# the program should set one explicitly if it cares.
+#
+# If the hook program exits with success, the txn is committed; but
+# if it exits with failure (non-zero), the txn is aborted, no commit
+# takes place, and STDERR is returned to the client.   The hook
+# program can use the 'svnlook' utility to help it examine the txn.
+#
+#
+# TASK:
+#   Create a subversion pre-commit hook that
+#   will validate incoming files for being
+#   (1) text only
+#   (2) less than 200KB
+#
+
+umask 077
+set -ue
+#set -x
+
+REPOS="$1"
+TXN="$2"
+TMP=$(mktemp -d /tmp/precommit.XXX)
+
+# SIZE_MAX   - maximum allowed filesize in bytes
+# TYPE_ALLOW - allow commit ony files with settes mimetype
+SIZE_MAX=204800
+TYPE_ALLOW="text/plain"
+SVNLOOK_CMD=/usr/bin/svnlook
+# GNU Version (Linux systems)
+TYPE_CMD='file -b --mime'
+SIZE_CMD='stat --printf="%s"'
+
+# POSIX Version (BSD stystems)
+TYPE_CMD='file -b --mime'
+SIZE_CMD='stat -f %z'
+
+
+# Create filelist
+# cat each file to temp file
+# do the TYPE, SIZE checks
+
+$SVNLOOK_CMD changed -t "$TXN" "$REPOS" > $TMP/filelist
+for filepath in `cat "$TMP/filelist" | awk '{ print $2 }'`; do
+    echo "fp=$filepath" >> /tmp/svnhooktest
+    filename=$(mktemp $TMP/XXXX)
+    $SVNLOOK_CMD cat -t "$TXN" "$REPOS" $filepath > $filename
+
+    # Checking filetype
+    filetype=$(${TYPE_CMD} ${filename} | cut -d";" -f1)
+    case $filetype in
+        $TYPE_ALLOW)
+        echo "DEBUG:w Filetype $filepath ($filetype) - OK"
+        ;;
+        *)
+        echo "$$ ERROR: Wrong filetype! $filepath ($filetype)" > /dev/stderr
+        exit 1
+        ;;
+    esac
+    
+    # Validating SIZE
+    size=$(${SIZE_CMD} ${filename})
+    if [ $size -lt $SIZE_MAX ]; then
+        echo "DEBUG: Filesize $size bytes < $SIZE_MAX bytes - OK. $filepath ($filename)"
+    else
+        echo "ERROR: Wrong filesize! $size bytes > $SIZE_MAX bytes. $filepath ($filename)" > /dev/stderr
+        exit 2
+    fi
+done
+
+#echo "DEBUG. Just in case" > /dev/stderr; exit 5
+rm -fr $TMP
+

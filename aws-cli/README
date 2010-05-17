@@ -1,0 +1,17 @@
+This scripts helps you to install all the AWS tools in one shot.
+Keeps it running from your home dirs and not from /usr/local.
+
+Installation
+============
+mkdir ~/amazon
+cp profile ~/amazon/
+cp update-tools.sh ~/amazon/
+~/amazon/update-tools.sh
+
+To apply the environment:
+. ~/amazon/profile
+
+You may want add this line to your ~/.profile, I guess..
+
+Have a happy day.
+

@@ -1,0 +1,34 @@
+#!/bin/sh
+# anton@linevich.com, 2010
+#    - syncing files from the production hosts,
+#    - making TAR gzipped archive from synced files
+[ $# -eq 3 ] || { echo "Usage: $0 <user@src.host> <src.dir> <dst.dir>"; exit 1; }
+
+
+set -ue
+#set -x
+
+TAR_CMD="tar -cf"
+SPLIT_CMD="split -d -b 1073741824"
+
+BACKUP_DIR="/ebs/backups/"
+DATE_DIR=$(date +%Y/%m/%d)
+DATE_FILE=$(date +%Y-%m-%d)
+
+backup_host=$1
+backup_src=$2
+backup_dst=$3
+output_filename="$BACKUP_DIR/${DATE_DIR}/${DATE_FILE}-${backup_dst}.tar.gz"
+
+mkdir -p "$BACKUP_DIR/${DATE_DIR}" | true
+date
+echo "$backup_host:$backup_src --> $output_filename"
+ssh -C $backup_host "${TAR_CMD} - $backup_src" | gzip -c > "$output_filename"
+
+${SPLIT_CMD} "$output_filename" "${output_filename}."
+rm "$output_filename"
+ls -lh $output_filename*
+date
+#last echo just to prettify the output
+echo ""
+

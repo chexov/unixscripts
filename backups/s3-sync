@@ -1,0 +1,30 @@
+#!/bin/sh
+# anton@linevich.com, 2010
+
+# Since "sync" is too slow and trying get entire bucket listing,
+# we just use sync for each file avoiding of getting remote bucket listing.
+#/usr/bin/s3cmd  sync  -v --skip-existing /mnt/backup/servers/ s3://backups.adotube.com/
+
+BACKUP_BUCKET=${1}
+BACKUP_DIR=${2:-/ebs/backups/}
+
+cd $BACKUP_DIR
+echo "Backuping files from $BACKUP_DIR to S3 bucket "
+date
+find . -type f | while read f; do
+   s3_path=$(echo $f | sed -e 's/.\///')
+   s3_dst="${BACKUP_BUCKET}/$s3_path"
+   echo "$f "
+   echo "   -> $s3_dst"
+   s3cmd sync --skip-existing $f "$s3_dst"
+   e=$?
+   if [ $e -ne 0 ]; then
+       echo "Error while syncing $f -> $s3_dst" | \
+          mail -s "Error while syncing $f -> $s3_dst" $USER
+   fi
+   echo ""
+done
+
+cd $OLDPWD
+date
+

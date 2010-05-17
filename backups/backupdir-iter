@@ -1,0 +1,35 @@
+#!/bin/sh
+# anton@linevich.com, 2010
+#
+[ $# -eq 3 ] || { echo "Usage: $0 <iterations to store> <backuping dir> <backups destination>"; exit 13; }
+
+
+set -ue
+ITERATIONS=$1
+BACKUPING_DIR=$2
+PREFIX=$3
+
+
+[ -d "$PREFIX/0" ] && rm -fdr "$PREFIX/0"
+mkdir "$PREFIX/0"
+
+cd "${BACKUPING_DIR}"
+ls -d * | while read d; do
+    b=`basename $d`
+    echo "Backuping '$b'"
+    tar cf "$PREFIX/0/$b.tar" "$b" || rm -v "$PREFIX/0/$b.tar"
+done
+
+DAY=$ITERATIONS
+rm -fdr "$PREFIX/$ITERATIONS"
+while [ $DAY -ge 2  ]; do
+    current_day=$DAY
+    DAY=$(($DAY - 1))
+    
+    echo "$PREFIX/$DAY -> $PREFIX/$current_day"
+    mv "$PREFIX/$DAY" "$PREFIX/$current_day" | true
+done
+
+echo "$PREFIX/ -> $PREFIX/1"
+mv "$PREFIX/0" "$PREFIX/1"
+

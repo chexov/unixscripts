@@ -1,9 +1,6 @@
-#!/usr/bin/perl
-#
-my $time = $ARGV[0];
-my @months = ("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
-my ($sec, $min, $hour, $day,$month,$year) = (localtime($time))[0,1,2,3,4,5,6]; 
-# You can use 'gmtime' for GMT/UTC dates instead of 'localtime'
-print "Unix time ".$time." converts to ".$months[$month]." ".$day.", ".($year+1900);
-print " ".$hour.":".$min.":".$sec."\n";
-
+#!/bin/sh
+set -ue
+for t in $*; do
+  perl -e "print scalar(localtime(${t}))"
+done
+echo

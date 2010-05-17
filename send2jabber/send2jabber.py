@@ -11,7 +11,7 @@ import jabber
 def usage():
     print ("Usage: send2jabber.py --user=Username --password=Password --server=jabber.myhostname.com --recipient=bill@gates.com")
 
-def connect(Username, Server, Resource):
+def connect(Username, Server, Resource, Password):
     JID = Username + '@' + Server + '/' + Resource
     
     con = jabber.Client(host=Server)
@@ -79,7 +79,7 @@ def main():
         usage()
         sys.exit(1)
     
-    con = connect(Username, Server, Resource)
+    con = connect(Username, Server, Resource, Password)
     send_msg(con, Recipient)
 
 if __name__ == "__main__":

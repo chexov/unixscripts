@@ -1,6 +1,6 @@
 #!/bin/sh
 # use this file as "source ./profile"
-set -x
+#set -x
 BASE_DIR=$(cd `dirname $0`; pwd; cd $OLDPWD;)
 
 # CentOS
@@ -21,5 +21,5 @@ export AWS_CLOUDWATCH_HOME=$AWS_CLOUD_WATCH_HOME
 
 export PATH=$PATH:$EC2_AMITOOL_HOME/bin:$EC2_API_HOME/bin:$AWS_ELB_HOME/bin:$AWS_CLOUD_WATCH_HOME/bin:$AWS_AUTO_SCALING_HOME/bin
 unset BASE_DIR
-set +x
+#set +x
 

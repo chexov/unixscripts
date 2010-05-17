@@ -6,22 +6,19 @@
 
 set -ue
 ITERATIONS=$1
-BACKUPING_DIR=$2
+DIR_TO_BACKUP=$2
 PREFIX=$3
 
 
-[ -d "$PREFIX/0" ] && rm -fdr "$PREFIX/0"
+[ -d "$PREFIX/0" ] && rm -fr "$PREFIX/0"
 mkdir "$PREFIX/0"
 
-cd "${BACKUPING_DIR}"
-ls -d * | while read d; do
-    b=`basename $d`
-    echo "Backuping '$b'"
-    tar cf "$PREFIX/0/$b.tar" "$b" || rm -v "$PREFIX/0/$b.tar"
-done
+b=`basename ${DIR_TO_BACKUP}`
+echo "Backuping '$DIR_TO_BACKUP'"
+tar cf "$PREFIX/0/$b.tar" "$DIR_TO_BACKUP" || rm -v "$PREFIX/0/$b.tar"
 
 DAY=$ITERATIONS
-rm -fdr "$PREFIX/$ITERATIONS"
+rm -fr "$PREFIX/$ITERATIONS"
 while [ $DAY -ge 2  ]; do
     current_day=$DAY
     DAY=$(($DAY - 1))

@@ -1,5 +1,13 @@
-This scripts helps you to install all the AWS tools in one shot.
-Keeps it running from your home dirs and not from /usr/local.
+# Check the updates on
+# http://github.com/chexov/unixscripts/tree/master/aws-cli/
+
+Description
+===========
+This scripts may help you to install all the AWS tools in one shot
+in your home dir.
+And will run them from that place and not from /usr/local.
+
+
 
 Installation
 ============

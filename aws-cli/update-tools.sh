@@ -2,6 +2,15 @@
 set -xue
 cd `dirname $0`
 
+[ -f awstools.list ] && {
+    wget -c -i awstools.list
+    ls *.zip | xargs -n 1 unzip -u
+    exit
+}
+
+
+# Dev hacks down here.
+
 # Hack?. Getting list of amazon's S3 ec2-downloads bucket
 s3cmd ls s3://ec2-downloads > ec2-downloads.list
 
@@ -12,10 +21,11 @@ for tool in $TOOLS; do
 
     b=$(basename $key)
     url="http://ec2-downloads.s3.amazonaws.com/$b"
+    echo $url >> awstools.list
+
     wget -c $url
 done
-wget -c 'http://s3.amazonaws.com/rds-downloads/RDSCli.zip'
-
+echo 'http://s3.amazonaws.com/rds-downloads/RDSCli.zip' >> awstools.list
 ls *.zip | xargs -n 1 unzip -u
 
 cd -

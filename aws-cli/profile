@@ -1,6 +1,6 @@
 #!/bin/sh
 # use this file as "source ./profile"
-set -x
+#set -x
 if [ -z "$BASH_SOURCE" ]; then
     fpath=$(cd $(dirname $0) && pwd && cd $OLDPWD)
 else

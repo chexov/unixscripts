@@ -14,6 +14,9 @@ for tool in $TOOLS; do
     url="http://ec2-downloads.s3.amazonaws.com/$b"
     wget -c $url
 done
+wget -c 'http://s3.amazonaws.com/rds-downloads/RDSCli.zip'
+
+ls *.zip | xargs -n 1 unzip -u
 
 cd -
 

@@ -1,11 +1,19 @@
 #!/bin/sh
 # use this file as "source ./profile"
 #set -x
-if [ -z "$BASH_SOURCE" ]; then
-    fpath=$(cd $(dirname $0) && pwd && cd $OLDPWD)
-else
-    fpath=$(cd $(dirname $BASH_SOURCE) && pwd && cd $OLDPWD)
-fi
+case $(uname -s) in
+    Darwin)
+        fpath=$(cd $(dirname $0) && pwd && cd $oldpwd)
+    ;;
+    *)
+        if [ -z "$BASH_SOURCE" ]; then
+            fpath=$(cd $(dirname $(readlink -f $0)) && pwd && cd $oldpwd)
+        else
+            fpath=$(cd $(dirname $(readlink -f $BASH_SOURCE)) && pwd && cd $OLDPWD)
+        fi
+    ;;
+esac
+
 
 BASE_DIR=$fpath
 

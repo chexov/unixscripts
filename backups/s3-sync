@@ -3,7 +3,7 @@
 
 # Since "sync" is too slow and trying get entire bucket listing,
 # we just use sync for each file avoiding of getting remote bucket listing.
-#/usr/bin/s3cmd  sync  -v --skip-existing /mnt/backup/servers/ s3://backups.adotube.com/
+#/usr/bin/s3cmd  sync  -v --skip-existing /mnt/backup/servers/ s3://backups/
 
 BACKUP_BUCKET=${1}
 BACKUP_DIR=${2:-/ebs/backups/}

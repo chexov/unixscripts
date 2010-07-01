@@ -1,0 +1,21 @@
+Prepare
+=======
+1. Install and setup s3cmd tool
+run s3cmd from the user which will be syncing logs
+
+2. Install awstats
+
+
+How to start
+============
+0. Create config files for awstats
+awstats.cflogs.example.conf
+awstats.s3logs.example.conf
+
+1. Retrive the logs from S3 bukcet to local storage
+get-aws-daily-access-logs.sh
+
+2. Run awstats to process the logs
+cflogs-merge.sh
+s3logs-merge.sh
+

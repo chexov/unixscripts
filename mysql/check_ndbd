@@ -16,7 +16,7 @@ case $# in
 
     # check to see ndbd_mgm daemon is running on $HOST and 
     # node are running
-    NODE_STATUS=`$NDB_MGM -c host=$HOST -t 1 -e "$NODEID status" | egrep -v '(Connected to Management Server|^$)'`
+    NODE_STATUS=`$NDB_MGM  --ndb-mgmd-host=$HOST -c -t 1 -e "$NODEID status" | egrep -v '(Connected to Management Server|^$)'`
     case $NODE_STATUS in
 	*started*)
 	echo "OK - $NODE_STATUS"
